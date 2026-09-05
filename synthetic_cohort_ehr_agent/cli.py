@@ -3,12 +3,32 @@ Command-Line Interface for SynthEHR Sentinel: Statistically Consistent Zero-PHI 
 """
 import argparse
 import csv
-import json
 import sys
+from pathlib import Path
 from .models import ClinicalCasePayload
 from .agents import SynthEHRCoordinator
 
 coordinator = SynthEHRCoordinator()
+
+# Security: Maximum file size for batch processing (10 MB)
+_MAX_BATCH_FILE_SIZE = 10 * 1024 * 1024
+
+
+def _validate_safe_path(filepath: str, must_exist: bool = False) -> Path:
+    """Validate file path for safe I/O, preventing path traversal."""
+    path = Path(filepath).resolve()
+    cwd = Path.cwd().resolve()
+    if must_exist and not path.exists():
+        raise FileNotFoundError(f"Input file not found: {filepath}")
+    if must_exist and not path.is_file():
+        raise ValueError(f"Path is not a regular file: {filepath}")
+    if must_exist and path.stat().st_size > _MAX_BATCH_FILE_SIZE:
+        raise ValueError(f"File exceeds maximum allowed size: {filepath}")
+    try:
+        path.relative_to(cwd)
+    except ValueError:
+        raise ValueError(f"File path must be within the working directory: {filepath}")
+    return path
 
 
 def main(argv=None):
@@ -68,7 +88,10 @@ def main(argv=None):
         return 0
 
     if args.command == "batch":
-        with open(args.input, mode="r", encoding="utf-8-sig") as f:
+        in_path = _validate_safe_path(args.input, must_exist=True)
+        out_path = _validate_safe_path(args.output, must_exist=False)
+
+        with open(in_path, mode="r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
@@ -76,14 +99,18 @@ def main(argv=None):
         out_fields = fieldnames + ["overall_status", "total_alerts", "stat_critical_alerts", "consensus_summary"]
         out_rows = []
         for r in rows:
-            case = ClinicalCasePayload(
-                case_id=r.get("case_id", "CASE-01"),
-                patient_synthetic_id=r.get("patient_synthetic_id", "SYNTH-01"),
-                primary_metric=float(r.get("metric_primary", r.get("primary_metric", 15.0))),
-                secondary_metric=float(r.get("metric_secondary", r.get("secondary_metric", 5.0))),
-                status_flag=r.get("status_flag", r.get("status_text", "NORMAL")),
-                is_stat=bool(r.get("is_stat", r.get("critical_flag", False))),
-            )
+            try:
+                case = ClinicalCasePayload(
+                    case_id=str(r.get("case_id", "CASE-01"))[:64],
+                    patient_synthetic_id=str(r.get("patient_synthetic_id", "SYNTH-01"))[:64],
+                    primary_metric=float(r.get("metric_primary", r.get("primary_metric", 15.0))),
+                    secondary_metric=float(r.get("metric_secondary", r.get("secondary_metric", 5.0))),
+                    status_flag=str(r.get("status_flag", r.get("status_text", "NORMAL")))[:64],
+                    is_stat=str(r.get("is_stat", r.get("critical_flag", ""))).lower() in ("true", "1", "yes"),
+                )
+            except (ValueError, TypeError) as e:
+                print(f"Warning: Skipping malformed row: {e}", file=sys.stderr)
+                continue
             dossier = coordinator.process_case(case)
             row_dict = dict(r)
             row_dict["overall_status"] = dossier["overall_status"]
@@ -92,7 +119,7 @@ def main(argv=None):
             row_dict["consensus_summary"] = dossier["consensus_summary"]
             out_rows.append(row_dict)
 
-        with open(args.output, mode="w", encoding="utf-8", newline="") as f:
+        with open(out_path, mode="w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=out_fields)
             writer.writeheader()
             writer.writerows(out_rows)
