@@ -3,7 +3,9 @@ FastAPI REST API Server for Synthetic Cohort Ehr Agent.
 """
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from .base import SecurityException
+from synthetic_cohort_ehr_agent.generator import generate_cohort
 from .base import AuditLogger, PHIGuard
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
@@ -19,6 +21,15 @@ app = FastAPI(
 
 class ChatRequest(BaseModel):
     query: str
+
+
+class CohortRequest(BaseModel):
+    count: int = Field(default=100, ge=1, le=2000)
+    seed: int = Field(default=42, ge=0, le=4294967295)
+    age_min: int = Field(default=18, ge=0, le=110)
+    age_max: int = Field(default=85, ge=0, le=110)
+    female_fraction: float = Field(default=0.5, ge=0, le=1, allow_inf_nan=False)
+    max_encounters: int = Field(default=2, ge=1, le=5)
 
 
 @app.get("/health")
@@ -37,8 +48,25 @@ def metrics():
 
 @app.post("/api/audit")
 def api_audit(payload: SystemTaskPayload):
-    dossier = supervisor.process_task(payload)
+    try:
+        dossier = supervisor.process_task(payload)
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Potential personal identifiers are not accepted")
     return dossier.to_dict()
+
+
+@app.post("/api/cohort")
+def api_generate_cohort(req: CohortRequest):
+    try:
+        records = generate_cohort(**req.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return {
+        "disclaimer": "Illustrative synthetic records only; not clinically validated or certified anonymous.",
+        "patients": req.count,
+        "encounters": len(records),
+        "records": records,
+    }
 
 
 @app.post("/api/chat")
