@@ -76,7 +76,28 @@ def main(argv=None):
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8000)
 
+    p_generate = subparsers.add_parser("generate", help="Create illustrative synthetic encounter rows")
+    p_generate.add_argument("-n", "--count", type=int, default=100)
+    p_generate.add_argument("--seed", type=int, default=42)
+    p_generate.add_argument("--age-min", type=int, default=18)
+    p_generate.add_argument("--age-max", type=int, default=85)
+    p_generate.add_argument("--female-fraction", type=float, default=0.5)
+    p_generate.add_argument("--max-encounters", type=int, default=2)
+    p_generate.add_argument("-o", "--output", default="cohort.csv")
+
     args = parser.parse_args(argv)
+
+    if args.command == "generate":
+        from synthetic_cohort_ehr_agent.generator import generate_cohort, write_cohort
+        output = _validate_file_path(args.output, must_exist=False)
+        records = generate_cohort(
+            count=args.count, seed=args.seed, age_min=args.age_min,
+            age_max=args.age_max, female_fraction=args.female_fraction,
+            max_encounters=args.max_encounters,
+        )
+        write_cohort(records, output)
+        print(f"Generated {args.count} fictional patients, {len(records)} encounters -> {output}")
+        return 0
 
     if args.command == "audit":
         task_id = _validate_identifier(args.task_id, "task_id")
