@@ -93,7 +93,7 @@ class SynthEHRCoordinator:
             "stat_critical_alerts": stat_count,
             "warning_alerts": warn_count,
             "alerts": [a.to_dict() for a in all_alerts],
-            "guideline_standard": "HL7 FHIR R4 & US Core Implementation Guide",
+            "guideline_standard": "Demonstration rules (not clinical guidance)",
             "consensus_summary": f"Multi-agent supervision completed across 3 sub-agents with status [{status.value}].",
         }
 
@@ -105,6 +105,6 @@ class SynthEHRCoordinator:
         if "status" in q or "summary" in q:
             return f"SynthEHR Sentinel: Statistically Consistent Zero-PHI Synthetic Patient Cohort Generator currently tracking {len(self.case_registry)} cases in on-premises memory."
         elif "guideline" in q or "standard" in q:
-            return "Active clinical surveillance operates under HL7 FHIR R4 & US Core Implementation Guide validated protocols."
+            return "This package uses illustrative rules; no clinical standard or guideline validation is claimed."
         else:
-            return f"SynthEHR Sentinel: Statistically Consistent Zero-PHI Synthetic Patient Cohort Generator executive agent online. Zero-PHI air-gapped monitoring active."
+            return f"SynthEHR Sentinel: Statistically Consistent Zero-PHI Synthetic Patient Cohort Generator executive agent online. This local demonstration does not implement PHI de-identification."
