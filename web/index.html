@@ -1,236 +1,130 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synthetic Cohort Ehr Engine — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Synthetic Cohort EHR · Local demonstration</title>
+  <style>
+    :root {color-scheme:dark; font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+      --bg:#0b1220;--panel:#141f30;--border:#30415a;--text:#eef3ff;
+      --muted:#b3c0d3;--accent:#82b7ff;--danger:#ffc1c1;}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);line-height:1.5}
+    main{max-width:1160px;margin:auto;padding:28px 20px 60px}
+    h1{font-size:clamp(1.55rem,3vw,2rem);line-height:1.2;margin:0 0 8px}
+    h2{font-size:1.22rem;margin:0 0 12px}
+    h3{font-size:1.05rem;margin:20px 0 8px}
+    p{margin:8px 0 16px;color:var(--muted)}
+    .top{border-bottom:1px solid var(--border);margin-bottom:22px;padding-bottom:16px}
+    .tag{display:inline-block;border:1px solid var(--accent);border-radius:20px;color:var(--accent);
+      padding:4px 12px;font-size:.78rem;font-weight:650;margin-bottom:14px}
+    .callout{border-left:4px solid var(--accent);padding:12px 16px;background:#15243a;
+      margin-bottom:24px;border-radius:0 8px 8px 0}
+    .callout p{margin:4px 0;color:var(--text)}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px}
+    .panel{border:1px solid var(--border);background:var(--panel);border-radius:12px;padding:22px;min-width:0}
+    .full{grid-column:1/-1}
+    .formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .field{display:flex;flex-direction:column;gap:5px}
+    label{font-size:.87rem;font-weight:600;color:var(--text)}
+    input,select{width:100%;border:1px solid #5a718f;background:#0b1727;color:var(--text);
+      border-radius:7px;padding:10px;font:inherit}
+    input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+    input[type=checkbox]{width:auto;accent-color:var(--accent);margin-right:8px}
+    .check{display:flex;align-items:center;min-height:42px}
+    button{cursor:pointer;padding:10px 15px;border-radius:7px;border:1px solid var(--accent);
+      background:#244d7f;color:white;font:inherit;font-weight:650}
+    button:hover:not(:disabled){background:#356ba8}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+    .secondary{background:transparent;color:var(--text)}
+    .status{min-height:25px;margin:14px 0 0;color:var(--muted)}
+    .error{color:var(--danger)}
+    .summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .stat{background:#0c1726;border:1px solid var(--border);border-radius:8px;padding:12px}
+    .stat strong{display:block;font-size:1.5rem;font-variant-numeric:tabular-nums}
+    .stat span{font-size:.85rem;color:var(--muted)}
+    .table-wrap{overflow-x:auto;max-width:100%}
+    table{width:100%;border-collapse:collapse;font-size:.82rem;white-space:nowrap}
+    th,td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:left}
+    th{color:var(--accent);font-weight:600}
+    pre{max-height:310px;overflow:auto;padding:15px;margin:0;border:1px solid var(--border);
+      border-radius:8px;background:#091321;color:#d9edff;font-size:.84rem;white-space:pre-wrap;overflow-wrap:anywhere}
+    small{color:var(--muted)}
+    footer{padding-top:20px;color:var(--muted);font-size:.85rem}
+    a{color:var(--accent)}
+    @media(max-width:760px){main{padding:18px 12px 36px}.layout{grid-template-columns:1fr}.panel{padding:17px}}
+    @media(max-width:460px){.formgrid{grid-template-columns:1fr}.summary{grid-template-columns:1fr}}
+  </style>
+  <script defer src="./engine.js"></script>
+  <script defer src="./app.js"></script>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Synthetic Cohort Ehr Engine</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
+<main>
+  <header class="top">
+    <span class="tag">Runs entirely in your browser · no account needed</span>
+    <h1>Synthetic Cohort EHR</h1>
+    <p>Generate reproducible illustrative encounter records and inspect the existing metric-based audit rules.</p>
+  </header>
+  <aside class="callout">
+    <p><strong>Demonstration data only.</strong> The generator uses hand-defined distributions, not fitted clinical data. Records are fictional, not validated for clinical inference, representative research, anonymity certification, or actual patient care. Do not enter real patient information.</p>
+  </aside>
+  <div class="layout">
+    <section class="panel">
+      <h2>1 · Generate fictional records</h2>
+      <form id="cohort-form">
+        <div class="formgrid">
+          <div class="field"><label for="count">Patients</label><input id="count" type="number" min="1" max="2000" step="1" value="100" required></div>
+          <div class="field"><label for="seed">Random seed</label><input id="seed" type="number" min="0" max="4294967295" step="1" value="42" required></div>
+          <div class="field"><label for="age-min">Minimum age</label><input id="age-min" type="number" min="0" max="110" step="1" value="18" required></div>
+          <div class="field"><label for="age-max">Maximum age</label><input id="age-max" type="number" min="0" max="110" step="1" value="85" required></div>
+          <div class="field"><label for="female-fraction">Fraction assigned female (0–1)</label><input id="female-fraction" type="number" min="0" max="1" step="0.05" value="0.5" required></div>
+          <div class="field"><label for="max-encounters">Maximum encounters per patient</label><input id="max-encounters" type="number" min="1" max="5" step="1" value="2" required></div>
         </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
+        <div class="actions"><button type="submit">Generate cohort</button><button id="download-csv" type="button" class="secondary" disabled>Download CSV</button><button id="download-json" type="button" class="secondary" disabled>Download JSON</button></div>
+        <p class="status" id="cohort-status" aria-live="polite">Configure parameters and generate records.</p>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Generation summary</h2>
+      <div class="summary">
+        <div class="stat"><strong id="patients-summary">—</strong><span>Fictional patients</span></div>
+        <div class="stat"><strong id="encounters-summary">—</strong><span>Encounter records</span></div>
+        <div class="stat"><strong id="female-summary">—</strong><span>Assigned female, patients</span></div>
+        <div class="stat"><strong id="systolic-summary">—</strong><span>Mean systolic BP, records (mm Hg)</span></div>
+      </div>
+      <h3>First 10 encounters</h3>
+      <div class="table-wrap">
+        <table aria-label="Fictional encounter preview">
+          <thead><tr><th>Patient</th><th>Encounter date</th><th>Age</th><th>Sex</th><th>SBP</th><th>BMI</th></tr></thead>
+          <tbody id="cohort-preview"><tr><td colspan="6">No records generated yet.</td></tr></tbody>
+        </table>
+      </div>
+      <small>Repeated encounters share the same fictional patient identifier and baseline demographics.</small>
+    </section>
+    <section class="panel">
+      <h2>2 · Rule-based metric audit</h2>
+      <p>Independent local demonstration of repository thresholds. It does not sign logs or contact a supervisor.</p>
+      <form id="audit-form">
+        <div class="formgrid">
+          <div class="field"><label for="task-id">Task ID</label><input id="task-id" value="DEMO-001" maxlength="256" required></div>
+          <div class="field"><label for="target-id">Target ID</label><input id="target-id" value="SYN-001" maxlength="256" required></div>
+          <div class="field"><label for="primary-metric">Primary metric</label><input id="primary-metric" type="number" step="any" value="29.4" required></div>
+          <div class="field"><label for="secondary-metric">Secondary metric</label><input id="secondary-metric" type="number" step="any" value="14.8" required></div>
+          <div class="field"><label for="status-descriptor">Status descriptor</label><input id="status-descriptor" value="DISCORDANT" maxlength="256" required></div>
+          <div class="field check"><label for="critical-flag"><input id="critical-flag" type="checkbox">Critical flag</label></div>
         </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Synthetic Cohort Ehr Engine Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "synthetic-cohort-ehr-engine",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+        <div class="actions"><button type="submit">Evaluate metric rules</button></div>
+        <p class="status" id="audit-status" aria-live="polite">No audit performed.</p>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Local audit result</h2>
+      <pre id="audit-result" aria-live="polite">Select “Evaluate metric rules” to show a rule-based dossier.</pre>
+    </section>
+  </div>
+  <footer>Source and Python API: <a href="https://github.com/abusuraihsakhri/synthetic-cohort-ehr-agent">GitHub repository</a>. Generated data stays on this device unless you explicitly export it.</footer>
+</main>
 </body>
 </html>
