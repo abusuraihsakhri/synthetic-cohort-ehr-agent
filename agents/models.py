@@ -9,7 +9,7 @@ import re
 from enum import Enum
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field, field_validator
-from .base import PHIGuard
+from .base import PHIGuard, SecurityException
 
 
 class UrgencyLevel(str, Enum):
@@ -39,7 +39,10 @@ class SystemTaskPayload(BaseModel):
     def validate_identifier(cls, value: str) -> str:
         if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,256}", value):
             raise ValueError("Identifier must be 1-256 characters of letters, digits, _, -, . or :")
-        PHIGuard.assert_no_phi(value)
+        try:
+            PHIGuard.assert_no_phi(value)
+        except SecurityException as exc:
+            raise ValueError("Potential personal identifier is not permitted") from exc
         return value
 
     @field_validator("status_descriptor")
@@ -47,7 +50,10 @@ class SystemTaskPayload(BaseModel):
     def validate_status(cls, value: str) -> str:
         if not value or len(value) > 256 or not value.isprintable():
             raise ValueError("Invalid status descriptor")
-        PHIGuard.assert_no_phi(value)
+        try:
+            PHIGuard.assert_no_phi(value)
+        except SecurityException as exc:
+            raise ValueError("Potential personal identifier is not permitted") from exc
         return value
 
     @field_validator("attributes")
@@ -56,7 +62,10 @@ class SystemTaskPayload(BaseModel):
         raw = json.dumps(value, allow_nan=False)
         if len(raw) > 16384:
             raise ValueError("Attributes are limited to 16 KB")
-        PHIGuard.assert_no_phi(raw)
+        try:
+            PHIGuard.assert_no_phi(raw)
+        except SecurityException as exc:
+            raise ValueError("Potential personal identifier is not permitted in attributes") from exc
         return value
 
 
