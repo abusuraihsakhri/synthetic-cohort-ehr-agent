@@ -14,7 +14,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Synthetic Cohort Ehr Agent API",
-    description="Enterprise Distributed Component Platform (Clinical & Biomedical AI)",
+    description="Demonstration metric audit and illustrative synthetic cohort generator",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -34,7 +34,7 @@ class CohortRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "synthetic-cohort-ehr-agent", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "synthetic-cohort-ehr-agent", "domain": "Clinical & Biomedical AI", "standard": "Demonstration rules (not clinical standards)", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics")
